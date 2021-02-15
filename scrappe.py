@@ -6,12 +6,12 @@ from bs4 import BeautifulSoup
 def create_custom_hn(links, subtext):
     news_list = []
     for index, item in enumerate(links):
-        title = links[index].getText()
-        href = links[index].get('href', None)
         vote = subtext[index].select('.score')
         if len(vote):
             points = int(vote[0].getText().strip(' points'))
             if points > 99:
+                title = links[index].getText()
+                href = links[index].get('href', None)
                 news_list.append({'title': title, 'link': href, 'score': points})
 
     return sorted(news_list, key=lambda i: i['score'], reverse=True)
