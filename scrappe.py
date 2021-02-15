@@ -1,22 +1,35 @@
 import requests
+import pprint
 from bs4 import BeautifulSoup
 
-def create_custom_hn(links,votes):
-    news_list =[]
-    for index,item in enumerate(links):
+
+def create_custom_hn(links, subtext):
+    news_list = []
+    for index, item in enumerate(links):
         title = links[index].getText()
-        href = links[index].get('href',None)
-        points = votes[index].getText()
-        print(points)
-        news_list.append({'title':title,'link': href})
+        href = links[index].get('href', None)
+        vote = subtext[index].select('.score')
+        if len(vote):
+            points = int(vote[0].getText().strip(' points'))
+            if points > 99:
+                news_list.append({'title': title, 'link': href, 'score': points})
 
-    return news_list
+    return sorted(news_list, key=lambda i: i['score'], reverse=True)
 
 
-url = 'https://news.ycombinator.com/news'
-request = requests.get(url)
-soup = BeautifulSoup(request.text,'html.parser')
+def get_link(pages=1):
+    return f'https://news.ycombinator.com/news?p={pages}'
 
-links = soup.select('.storylink')
-votes = soup.select('.score')
-create_custom_hn(links,votes)
+
+def slicing_url(url):
+    request = requests.get(url)
+    soup = BeautifulSoup(request.text, 'html.parser')
+    links = soup.select('.storylink')
+    subtext = soup.select('.subtext')
+    return links, subtext
+
+
+if __name__ == '__main__':
+    url = get_link(2)
+    links, subtext = slicing_url(url)
+    pprint.pprint(create_custom_hn(links, subtext))
